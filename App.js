@@ -1,114 +1,159 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import 'react-native-gesture-handler';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ImageBackground, SafeAreaView, ActivityIndicator, FlatList, Button, TouchableOpacity, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const urll = 'https://rickandmortyapi.com/api/episode';
+const image = require('./images/1.jpg');
+const ep='https://rickandmortyapi.com/api/episode/8';
 
-const App: () => React$Node = () => {
+
+const HomeScreen = ({ navigation }) => {
+
+  const [isLoading, setLoading] = useState('true');
+  const [data, setData] = useState([]);
+  const [episode, setEpidose] = useState([]);
+  const [id,setId]=useState([]);
+  
+  useEffect(() => {
+    fetch(urll)
+      .then((response) => response.json()).then((json) => {
+        setData(json.results);
+        setEpidose(json.episode);
+        setId(json.id);
+      })
+      .catch((error) => alert(error))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
+    <ImageBackground source={image} style={styles.im} >
+      <SafeAreaView style={styles.container}>
+        {isLoading ? (
+          <ActivityIndicator />
+        ) : (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Text>{episode}</Text>
+              <FlatList
+                data={data}
+                keyExtractor={({ id }, index) => id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={styles.touchStyle}
+                    onPress={() => navigation.navigate('Episode')}>
+                    <Text style={styles.item}>
+                      {item.episode}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
             </View>
           )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
+
       </SafeAreaView>
-    </>
+    </ImageBackground>
   );
-};
+}
+
+const EpisodeScreen = ({navigation}) => {
+  const [isLoading, setLoading] = useState('true');
+  const [data, setData] = useState([]);
+  const[name,setName]=useState([]);
+  const[air_date,setAirDate]=useState([]);
+ 
+
+  useEffect(() => {
+    fetch(ep)
+      .then((response) => response.json()).then((json) => {
+        setData(json.ep)
+        setName(json.name)
+        setAirDate(json.air_date);
+      })
+      .catch((error) => alert(error))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <SafeAreaView style={styles.container}>
+        {isLoading ? (
+          <ActivityIndicator />
+        ) : (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Text> Bölüm adı = {name}</Text>
+              <Text>Yayınlanma Tarihi = {air_date}</Text>
+
+              <FlatList
+                data={data}
+                keyExtractor={({ id }, index) => id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={styles.touchStyle}
+                    onPress={() => navigation.navigate('Characters')}>
+                     
+                     <Text style={styles.item}>
+                      {item.name}
+                      {item.air_date}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+
+            </View>
+
+          )}
+
+      </SafeAreaView>
+  );
+}
+
+
+
+const Stack = createStackNavigator();
+
+const NavigationOptionHandler=()=>({
+  headerShown:false
+})
+
+const App = () => {
+  return (
+    <View style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Empty">
+          <Stack.Screen name="Home" component={HomeScreen} options={NavigationOptionHandler} />
+          <Stack.Screen name="Episode" component={EpisodeScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
+  im: {
+    flex: 1,
+    resizeMode: 'stretch',
   },
-  body: {
-    backgroundColor: Colors.white,
+  item: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 20,
+
   },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-});
+  touchStyle: {
+    borderColor: '#add8e6',
+    borderWidth: 5,
+    borderRadius: 4,
+    width: 100,
+    height: 50,
+    backgroundColor: '#fff',
+    marginTop: 20,
+
+  }
+})
 
 export default App;
